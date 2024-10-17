@@ -1,4 +1,4 @@
-# cs4391
+# Implementation of Neural Network from scratch
 
 ### Installation
 Install python packages
