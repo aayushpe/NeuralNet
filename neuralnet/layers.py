@@ -18,12 +18,12 @@ def fc_forward(x, w, b):
     - cache: (x, w, b)
     """
     out = None
-    ###########################################################################
-    # TODO: Implement the forward pass. Store the result in out.              #
-    ###########################################################################
-    ###########################################################################
-    #                             END OF YOUR CODE                            #
-    ###########################################################################
+
+    row_dim = x.shape[0]
+    col_dim = np.prod(x.shape[1:])
+    x_reshape = x.reshape(row_dim, col_dim)
+    out = np.dot(x_reshape, w) + b
+    
     cache = (x, w, b)
     return out, cache
 
@@ -46,12 +46,17 @@ def fc_backward(grad_out, cache):
     """
     x, w, b = cache
     grad_x, grad_w, grad_b = None, None, None
-    ###########################################################################
-    # TODO: Implement the backward pass for the fully-connected layer         #
-    ###########################################################################
-    ###########################################################################
-    #                             END OF YOUR CODE                            #
-    ###########################################################################
+
+    N = x.shape[0]
+    D = np.prod(x.shape[1:])
+    x2 = np.reshape(x, (N, D))
+
+    grad_x2 = np.dot(grad_out, w.T) # N X D
+    grad_w = np.dot(x2.T, grad_out) # D X M
+    grad_b = np.dot(grad_out.T, np.ones(N)) # M X 1
+
+    grad_x = np.reshape(grad_x2, x.shape)
+    
     return grad_x, grad_w, grad_b
 
 
@@ -67,12 +72,8 @@ def relu_forward(x):
     - cache: x
     """
     out = None
-    ###########################################################################
-    # TODO: Implement the ReLU forward pass.                                  #
-    ###########################################################################
-    ###########################################################################
-    #                             END OF YOUR CODE                            #
-    ###########################################################################
+
+    out = np.maximum(0, x)
     cache = x
     return out, cache
 
@@ -89,12 +90,11 @@ def relu_backward(grad_out, cache):
     - grad_x: Gradient with respect to x
     """
     grad_x, x = None, cache
-    ###########################################################################
-    # TODO: Implement the ReLU backward pass.                                 #
-    ###########################################################################
-    ###########################################################################
-    #                             END OF YOUR CODE                            #
-    ###########################################################################
+
+    out = np.maximum(0, x)
+    out[out > 0] = 1
+    grad_x = out * grad_out
+    
     return grad_x
 
 
@@ -136,12 +136,17 @@ def softmax_loss(x, y):
       with respect to x
     """
     loss, grad_x = None, None
-    ###########################################################################
-    # TODO: Implement softmax loss                                            #
-    ###########################################################################
-    ###########################################################################
-    #                             END OF YOUR CODE                            #
-    ###########################################################################
+    
+    probs = np.exp(x - np.max(x, axis=1, keepdims = True))
+    probs /= np.sum(probs, axis=1, keepdims = True)
+    N = x.shape[0]
+
+    loss = -np.sum(np.log(probs[np.arrange(N)], y)) / N
+    
+    grad_x = probs.copy()
+    grad_x[np.arange(N), y] -= 1
+    grad_x /= N
+    
     return loss, grad_x
 
 
@@ -158,12 +163,13 @@ def l2_regularization(w, reg):
     - reg: float giving the regularization strength
 
     Returns:
+    - loss: Scalar giving the L2 regularization loss
+    - grad_w: Numpy array of same shape as w giving gradient of loss with respect to w
     """
-    loss, grad_w = None, None
-    ###########################################################################
-    # TODO: Implement L2 regularization.                                      #
-    ###########################################################################
-    ###########################################################################
-    #                             END OF YOUR CODE                            #
-    ###########################################################################
+    # Compute the L2 loss
+    loss = (reg / 2) * np.sum(w ** 2)
+    
+    # Compute the gradient of the loss with respect to w
+    grad_w = reg * w
+    
     return loss, grad_w
