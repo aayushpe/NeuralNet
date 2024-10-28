@@ -33,30 +33,27 @@ def fc_backward(grad_out, cache):
     Computes the backward pass for a fully-connected layer.
 
     Inputs:
-    - grad_out: Numpy array of shape (N, Dout) giving upstream gradients
+    - grad_out: Upstream derivative, of shape (N, Dout)
     - cache: Tuple of:
-      - x: A numpy array of shape (N, Din) giving input data
-      - w: A numpy array of shape (Din, Dout) giving weights
-      - b: A numpy array of shape (Dout,) giving biases
+      - x: Input data, of shape (N, Din)
+      - w: Weights, of shape (Din, Dout)
+      - b: Biases, of shape (Dout,)
 
-    Returns a tuple of downstream gradients:
-    - grad_x: A numpy array of shape (N, Din) of gradient with respect to x
-    - grad_w: A numpy array of shape (Din, Dout) of gradient with respect to w
-    - grad_b: A numpy array of shape (Dout,) of gradient with respect to b
+    Returns a tuple of:
+    - grad_x: Gradient with respect to x, of shape (N, Din)
+    - grad_w: Gradient with respect to w, of shape (Din, Dout)
+    - grad_b: Gradient with respect to b, of shape (Dout,)
     """
     x, w, b = cache
-    grad_x, grad_w, grad_b = None, None, None
-
     N = x.shape[0]
-    D = np.prod(x.shape[1:])
-    x2 = np.reshape(x, (N, D))
+    x_reshaped = x.reshape(N, -1)
 
-    grad_x2 = np.dot(grad_out, w.T) # N X D
-    grad_w = np.dot(x2.T, grad_out) # D X M
-    grad_b = np.dot(grad_out.T, np.ones(N)) # M X 1
+    grad_x_reshaped = np.dot(grad_out, w.T)         # Shape: (N, Din)
+    grad_w = np.dot(x_reshaped.T, grad_out)         # Shape: (Din, Dout)
+    grad_b = np.sum(grad_out, axis=0)               # Shape: (Dout,)
 
-    grad_x = np.reshape(grad_x2, x.shape)
-    
+    grad_x = grad_x_reshaped.reshape(x.shape)       # Reshape back to input shape
+
     return grad_x, grad_w, grad_b
 
 
