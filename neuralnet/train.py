@@ -28,32 +28,27 @@ parser.add_argument(
 
 def main(args):
     # How much data to use for training
-    num_train = 20000
+    num_train = 49000
+    num_val = 1000
 
     # Model architecture hyperparameters.
-    hidden_dim = 16
+    hidden_dim = 512
+    weight_scale = 1e-2
 
     # Optimization hyperparameters.
-    batch_size = 128
-    num_epochs = 10
-    learning_rate = 1e-4
-    reg = 1.0
+    batch_size = 256
+    num_epochs = 15
+    learning_rate = 1e-2
+    reg = 1e-4
 
-    ###########################################################################
-    # TODO: Set hyperparameters for training your model. You can change any   #
-    # of the hyperparameters above.                                           #
-    ###########################################################################
-    ###########################################################################
-    #                           END OF YOUR CODE                              #
-    ###########################################################################
-
-    data = load_cifar10(num_train=num_train)
+    data = load_cifar10(num_train = num_train, num_val = num_val)
     train_sampler = DataSampler(data['X_train'], data['y_train'], batch_size)
     val_sampler = DataSampler(data['X_val'], data['y_val'], batch_size)
 
     # Set up the model and optimizer
-    model = TwoLayerNet(hidden_dim=hidden_dim)
+    model = TwoLayerNet(hidden_dim=hidden_dim, weight_scale = weight_scale)
     optimizer = SGD(model.parameters(), learning_rate=learning_rate)
+
 
     stats = {
         't': [],
@@ -109,12 +104,28 @@ def training_step(model, X_batch, y_batch, reg):
       of the loss with respect to model.parameters()[k].
     """
     loss, grads = None, None
-    ###########################################################################
-    # TODO: Compute the loss and gradient for one training iteration.         #
-    ###########################################################################
-    ###########################################################################
-    #                             END OF YOUR CODE                            #
-    ###########################################################################
+
+    # Forward pass: compute class scores and cache
+    scores, cache = model.forward(X_batch)
+
+    # Compute the data loss using softmax loss
+    data_loss, dscores = softmax_loss(scores, y_batch)
+
+    # Initialize the total loss as the data loss
+    loss = data_loss
+
+    # Backward pass: compute gradients
+    grads = model.backward(dscores, cache)
+
+    # Add L2 regularization to the loss and gradients
+    params = model.parameters()
+    for param_name in params:
+        if 'W' in param_name:  # Regularize weights only, not biases
+            W = params[param_name]
+            reg_loss, reg_grad = l2_regularization(W, reg)
+            loss += reg_loss
+            grads[param_name] += reg_grad  # Add regularization gradient
+
     return loss, grads
 
 

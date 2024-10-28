@@ -21,12 +21,10 @@ class TwoLayerNet(Classifier):
         - hidden_dim: The size of the hidden layer
         - weight_scale: The standard deviation for weight initialization
         """
-        # First layer weights and biases
-        self.W1 = np.random.randn(input_dim, hidden_dim) * weight_scale
+        # Xavier initialization for weights
+        self.W1 = np.random.randn(input_dim, hidden_dim) * np.sqrt(2.0 / input_dim)
         self.b1 = np.zeros(hidden_dim)
-
-        # Second layer weights and biases
-        self.W2 = np.random.randn(hidden_dim, num_classes) * weight_scale
+        self.W2 = np.random.randn(hidden_dim, num_classes) * np.sqrt(2.0 / hidden_dim)
         self.b2 = np.zeros(num_classes)
 
     def parameters(self):

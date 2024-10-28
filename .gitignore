@@ -1,2 +1,5 @@
 doc.pdf
 __pycache__
+cifar-10-batches-py
+checkpoint.pkl
+plot.pdf

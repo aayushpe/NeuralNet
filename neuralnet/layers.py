@@ -118,7 +118,7 @@ def l2_loss(x, y):
 
 def softmax_loss(x, y):
     """
-    Computes the loss and gradient for softmax (cross-entropy) loss function.
+    Computes the loss and gradient for the softmax (cross-entropy) loss function.
 
     Inputs:
     - x: Numpy array of shape (N, C) giving predicted class scores, where
@@ -130,16 +130,23 @@ def softmax_loss(x, y):
     Returns a tuple of:
     - loss: Scalar giving the loss
     - grad_x: Numpy array of shape (N, C) giving the gradient of the loss with
-      with respect to x
+      respect to x
     """
     loss, grad_x = None, None
     
-    probs = np.exp(x - np.max(x, axis=1, keepdims = True))
-    probs /= np.sum(probs, axis=1, keepdims = True)
+    # Shift the logits for numerical stability
+    shifted_logits = x - np.max(x, axis=1, keepdims=True)
+    
+    # Compute softmax probabilities
+    probs = np.exp(shifted_logits)
+    probs /= np.sum(probs, axis=1, keepdims=True)
     N = x.shape[0]
 
-    loss = -np.sum(np.log(probs[np.arrange(N)], y)) / N
+    # Compute the loss
+    correct_logprobs = -np.log(probs[np.arange(N), y])
+    loss = np.sum(correct_logprobs) / N
     
+    # Compute the gradient
     grad_x = probs.copy()
     grad_x[np.arange(N), y] -= 1
     grad_x /= N
